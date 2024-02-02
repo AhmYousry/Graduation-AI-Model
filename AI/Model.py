@@ -1,5 +1,5 @@
 import time
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import numpy as np
 import cv2
@@ -13,6 +13,13 @@ import base64
 
 app = Flask(__name__)
 CORS(app)
+
+STATIC_FOLDER = 'static'
+app.config['STATIC_FOLDER'] = STATIC_FOLDER
+
+# Check if the 'static' folder exists, and create it if not
+if not os.path.exists(STATIC_FOLDER):
+    os.makedirs(STATIC_FOLDER)
 
 @app.route('/', methods=['GET'])
 def welcome():
@@ -84,16 +91,28 @@ def generateImage():
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
     superimposed_img = cv2.addWeighted(original_img, 0.6, heatmap, 0.4, 0)
 
-    encoded_image = base64.b64encode(superimposed_img).decode('utf-8')
-    # Create a JSON object with the encoded image
-    response_data = {'image': encoded_image, "Predicted class": predicted_class}
+    static_path = os.path.join(app.config['STATIC_FOLDER'], f'superimposed_{time.time()}.png')
+    cv2.imwrite(static_path, superimposed_img)
+    # Print the list of files in the static folder
+    print(os.listdir(app.config['STATIC_FOLDER']))
 
+
+    response_data = {'image_url': static_path, "Predicted class": predicted_class}
 
     # Remove the temporary file
     os.remove(temp_path)
 
     return jsonify(response_data) 
-    
+
+@app.route('/<path:filename>')
+def serve_static(filename):
+    if filename == 'latest':
+        # Get the latest modified file in the static folder
+        files = glob.glob(os.path.join(app.config['STATIC_FOLDER'], '*.png'))
+        latest_file = max(files, key=os.path.getmtime)
+        return send_from_directory(app.config['STATIC_FOLDER'], os.path.basename(latest_file))
+    else:
+        return send_from_directory(app.config['STATIC_FOLDER'], filename)
 
 def save_temporary_file(file):
     _, temp_path = tempfile.mkstemp()
