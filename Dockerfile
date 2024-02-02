@@ -6,6 +6,8 @@ COPY ./AI/requirements.txt .
 
 RUN pip install --upgrade pip
 
+RUN apt-get update && apt-get install libgl1 -y
+
 # Install or upgrade 'blinker' inside the virtual environment
 RUN pip install blinker
 
