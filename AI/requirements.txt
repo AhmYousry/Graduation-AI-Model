@@ -3,3 +3,6 @@ flask-cors==4.0.0
 python-dotenv==1.0.0
 tensorflow==2.15.0
 Image==1.5.33
+opencv-contrib-python
+matplotlib
+numpy
