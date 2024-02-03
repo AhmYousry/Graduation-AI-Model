@@ -90,14 +90,13 @@ def generateImage():
     heatmap = (heatmap * 255).astype(np.uint8)
     heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
     superimposed_img = cv2.addWeighted(original_img, 0.6, heatmap, 0.4, 0)
-
-    static_path = os.path.join(app.config['STATIC_FOLDER'], f'superimposed_{time.time()}.png')
+    image_name = f'superimposed_{time.time()}.png'
+    static_path = os.path.join(app.config['STATIC_FOLDER'], image_name)
     cv2.imwrite(static_path, superimposed_img)
     # Print the list of files in the static folder
     print(os.listdir(app.config['STATIC_FOLDER']))
-
-
-    response_data = {'image_url': static_path, "Predicted class": predicted_class}
+    image_url = f'http://localhost:5000/{image_name}'
+    response_data = {'image_url': image_url, "Predicted class": predicted_class}
 
     # Remove the temporary file
     os.remove(temp_path)
